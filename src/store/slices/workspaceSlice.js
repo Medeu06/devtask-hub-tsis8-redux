@@ -20,10 +20,10 @@ function persistPinnedIds(ids) {
 }
 
 const initialState = {
-  viewMode: 'grid', // 'grid' | 'compact'
+  viewMode: 'grid',
   pinnedTaskIds: loadInitialPinnedIds(),
   onlyPinned: false,
-  toast: null, // { id, message, type }
+  toast: null,
 };
 
 const workspaceSlice = createSlice({
@@ -46,9 +46,10 @@ const workspaceSlice = createSlice({
       state.onlyPinned = Boolean(action.payload);
     },
     showToast(state, action) {
-      const payload = typeof action.payload === 'string'
-        ? { message: action.payload, type: 'success' }
-        : action.payload;
+      const payload =
+        typeof action.payload === 'string'
+          ? { message: action.payload, type: 'success' }
+          : action.payload;
       state.toast = {
         id: Date.now(),
         message: payload.message,
