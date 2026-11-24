@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { fakeApi } from '../../services/fakeApi.js';
 import { API_CONFIG } from '../../services/settings.js';
 
-// 1. Async Thunk: Fetch tasks list (with duplicate-request prevention)
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async (_, { rejectWithValue }) => {
@@ -18,9 +17,8 @@ export const fetchTasks = createAsyncThunk(
       if (force) return true;
 
       const { tasks } = getState();
-      if (tasks.listStatus === 'loading') {
-        return false;
-      }
+      if (tasks.listStatus === 'loading') return false;
+
       const isFresh =
         tasks.items.length > 0 &&
         navigator.onLine &&
@@ -31,7 +29,6 @@ export const fetchTasks = createAsyncThunk(
   }
 );
 
-// 2. Async Thunk: Fetch single task details
 export const fetchTaskById = createAsyncThunk(
   'tasks/fetchTaskById',
   async (id, { rejectWithValue }) => {
@@ -43,7 +40,6 @@ export const fetchTaskById = createAsyncThunk(
   }
 );
 
-// 3. Async Thunks: CRUD Mutations + Refresh affected data
 export const createTask = createAsyncThunk(
   'tasks/createTask',
   async (newTaskData, { dispatch, rejectWithValue }) => {
@@ -100,13 +96,13 @@ const initialState = {
   items: [],
   dataSource: 'network',
   lastFetchedAt: 0,
-  listStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  listStatus: 'idle',
   listError: null,
   currentListRequestId: null,
 
   selectedTask: null,
   detailDataSource: 'network',
-  detailStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  detailStatus: 'idle',
   detailError: null,
   currentDetailRequestId: null,
 
@@ -125,14 +121,12 @@ const tasksSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // fetchTasks lifecycle
       .addCase(fetchTasks.pending, (state, action) => {
         state.listStatus = 'loading';
         state.listError = null;
         state.currentListRequestId = action.meta.requestId;
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
-        // Ignore stale responses if a newer request was dispatched
         if (state.currentListRequestId !== action.meta.requestId) return;
         state.listStatus = 'succeeded';
         state.items = action.payload.items;
@@ -146,8 +140,6 @@ const tasksSlice = createSlice({
         state.listError = action.payload || action.error.message;
         state.currentListRequestId = null;
       })
-
-      // fetchTaskById lifecycle
       .addCase(fetchTaskById.pending, (state, action) => {
         state.detailStatus = 'loading';
         state.detailError = null;
@@ -167,8 +159,6 @@ const tasksSlice = createSlice({
         state.selectedTask = null;
         state.currentDetailRequestId = null;
       })
-
-      // createTask lifecycle
       .addCase(createTask.pending, (state) => {
         state.activeMutationId = 'CREATE';
       })
@@ -178,8 +168,6 @@ const tasksSlice = createSlice({
       .addCase(createTask.rejected, (state) => {
         state.activeMutationId = null;
       })
-
-      // updateTask lifecycle
       .addCase(updateTask.pending, (state, action) => {
         state.activeMutationId = action.meta.arg.id;
       })
@@ -192,8 +180,6 @@ const tasksSlice = createSlice({
       .addCase(updateTask.rejected, (state) => {
         state.activeMutationId = null;
       })
-
-      // deleteTask lifecycle
       .addCase(deleteTask.pending, (state, action) => {
         state.activeMutationId = action.meta.arg;
       })
@@ -206,8 +192,6 @@ const tasksSlice = createSlice({
       .addCase(deleteTask.rejected, (state) => {
         state.activeMutationId = null;
       })
-
-      // resetTasks lifecycle
       .addCase(resetTasks.pending, (state) => {
         state.listStatus = 'loading';
       })
